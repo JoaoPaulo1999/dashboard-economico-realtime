@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Painel de indicadores econômicos brasileiros e globais em atualização automática." />
+  <title>Atlas Econômico | Indicadores em tempo real</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .main-nav{gap:18px;margin-left:30px}
+    .brand-mark{width:46px!important;font-size:13px!important;letter-spacing:1px}
+    body{background:#dfe2e1;color:#17221f}.metric-card,.market-card{background:rgba(247,248,247,.68);border-color:#c2c8c5;backdrop-filter:blur(8px)}
+    .featured{background:rgba(19,107,83,.9);color:#f9f6ee;backdrop-filter:blur(8px)}.accent-card{background:rgba(232,117,61,.88);color:#fff8ed;backdrop-filter:blur(8px)}.trade-card{background:rgba(23,34,31,.92);color:#fbf9f4;backdrop-filter:blur(8px)}
+    .topbar,.section-heading,footer{border-color:#c2c8c5}.main-nav a,.section-note,.card-bottom,.tag,.intro-copy,.session-row.muted{color:#69736e}.section-heading h2,h1,.label,.value,.currency-row strong,.index-row strong,.commodity-grid b{color:#17221f}
+    .bar.q2 span,.bar.q4 span,.month-bars b,#monthlyChart .month-bars b{background:#c43d45!important}.chart-legend .legend-import:before{background:#c43d45!important}.negative-bar{background:#d94b4b!important}.comparison-negative span,.negative,.negative-number{color:#b95748!important}.quarter-values b.positive-number{color:#136b53!important}.quarter-values b.negative-number{color:#b95748!important}.quarter-values b:not(.positive-number):not(.negative-number){color:#69736e!important}
+    .trade-overview{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .trade-summary>strong{display:block;color:#f5c95e;font-family:Georgia,serif;font-size:44px;font-weight:400;letter-spacing:-2px;margin-top:37px}
+    .trade-caption{display:block;color:#aab2aa;font-family:var(--mono);font-size:9px;margin-top:8px}
+    .trade-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid #647069;margin-top:28px;padding-top:17px}
+    .trade-stats span,.trade-month span{display:block;color:#aab2aa;font-family:var(--mono);font-size:9px;margin-bottom:8px}
+    .trade-stats b{font-family:var(--mono);font-weight:400;font-size:15px}
+    .trade-month{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:42px}
+    .trade-month strong{font-family:var(--mono);font-size:16px;font-weight:500}
+    .trade-month div:last-child strong{color:var(--green)}
+    .commodity-grid,.comparison-line{min-width:0}.commodity-grid>div{min-width:0}.comparison-line{display:flex;justify-content:space-between;align-items:center;gap:6px;width:100%;margin-top:8px;padding-top:9px;border-top:2px solid var(--line);font:10px var(--mono);font-weight:500;overflow:hidden}
+    .commodity-icon{object-fit:cover;border:0;border-radius:2px;cursor:pointer;transition:transform .2s ease,filter .2s ease;position:relative;mix-blend-mode:multiply;background:transparent}.commodity-icon:hover,.commodity-grid>div.is-selected .commodity-icon{transform:scale(1.08);filter:saturate(1.25)}.commodity-grid>div.is-selected{outline:2px solid var(--orange);outline-offset:-2px}.commodity-grid>div.is-selected:after{content:'selecionado';display:block;color:var(--orange);font:8px var(--mono);margin-top:5px;text-transform:uppercase}
+    .commodity-icon.iron{mix-blend-mode:multiply;background:transparent}
+    .comparison-line small{font:9px var(--mono);color:var(--muted)}.comparison-positive span{color:var(--green)}.comparison-negative span{color:var(--red)}
+    .section-note a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+    .sparkline{width:74px;height:22px;overflow:visible;flex:1;min-width:24px}.sparkline polyline{fill:none;stroke:var(--green);stroke-width:2;vector-effect:non-scaling-stroke}.comparison-negative .sparkline polyline{stroke:var(--red)}
+    .gdp-card{background:#d8a63d;color:#17221f}.gdp-card .tag,.gdp-card .card-bottom{color:rgba(23,34,31,.7)}.gdp-card .comparison-line{border-color:rgba(23,34,31,.3)}
+    .forecast-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.forecast-card{min-height:210px}.forecast-list{margin-top:23px}.forecast-row{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:7px;border-bottom:1px solid var(--line);padding:11px 0;font:10px var(--mono)}.forecast-row:last-child{border-bottom:0}.forecast-row b{font-size:10px;font-weight:500}.forecast-row strong{font-family:Georgia,serif;font-size:18px;font-weight:400;color:var(--green)}.forecast-row.current{color:var(--orange)}.forecast-row.current strong{color:var(--orange)}
+    .currency-row .comparison-line,.index-row .comparison-line{grid-column:1/-1}
+    .featured .comparison-line,.accent-card .comparison-line{border-color:rgba(255,255,255,.25)}.featured .comparison-line small,.accent-card .comparison-line small{color:rgba(255,255,255,.7)}.featured .comparison-positive span,.accent-card .comparison-positive span{color:#f5d47b}
+    .trade-graphs{display:grid;grid-template-columns:1.25fr .75fr;gap:10px;margin-top:10px}
+    .graph-card{min-height:245px}.chart-legend{display:flex;gap:18px;margin-top:24px;font:9px var(--mono);color:var(--muted)}
+    .legend-export:before,.legend-import:before{content:'';display:inline-block;width:8px;height:8px;margin-right:6px}.legend-export:before{background:var(--green)}.legend-import:before{background:var(--orange)}
+    .monthly-chart{height:140px;display:flex;align-items:end;gap:8px;border-bottom:1px solid var(--line);padding:18px 4px 0}.month-bars{height:100%;flex:1;display:flex;align-items:end;justify-content:center;gap:2px;position:relative}.month-bars i,.month-bars b{display:block;width:9px;min-height:2px}.month-bars i{background:var(--green)}.month-bars b{background:var(--orange)}.month-bars small,.quarter-bar small{position:absolute;bottom:-19px;font:8px var(--mono);color:var(--muted)}
+    .quarter-chart{height:140px;display:flex;align-items:end;justify-content:space-around;border-bottom:1px solid var(--line);margin-top:31px;padding:0 12px}.quarter-bar{height:100%;width:18%;display:flex;align-items:center;justify-content:end;flex-direction:column;position:relative;gap:7px}.quarter-bar i{display:block;width:100%;background:var(--green);min-height:0}.quarter-bar i.negative-bar{background:var(--red)}.quarter-bar b{position:absolute;top:-20px;font:9px var(--mono);font-weight:400;color:var(--ink)}
+    .metric-card.is-updating,.market-card.is-updating,.trade-card.is-updating{animation:card-update .65s ease-out}
+    @keyframes card-update{0%{box-shadow:0 0 0 0 rgba(232,117,61,.8)}45%{box-shadow:0 0 0 5px rgba(232,117,61,.28)}100%{box-shadow:0 0 0 0 rgba(232,117,61,0)}}
+    @media(max-width:800px){.trade-overview{grid-template-columns:1fr}}
+    @media(max-width:800px){.forecast-grid{grid-template-columns:1fr}}
+    @media(max-width:800px){.trade-graphs{grid-template-columns:1fr}}
+    @media(max-width:430px){.trade-month{gap:8px}.trade-month strong{font-size:13px}.monthly-chart{gap:3px}.month-bars i,.month-bars b{width:6px}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="JPD Atlas Econômico, início">
+        <span class="brand-mark">JPD</span>
+          <span><strong>ATLAS</strong><small>ECONÔMICO</small></span>
+      </a>
+      <nav class="main-nav" aria-label="Navegação por seção">
+        <a class="active" href="#atividade">Macro</a>
+        <a href="#mercados">Mercado</a>
+        <a href="#ibc-br">Atividade econômica</a>
+        <a href="#comercio">Commodities</a>
+        <a href="#balanca">Balança comercial</a>
+        <a href="#futuro">Mercado futuro</a>
+      </nav>
+      <div class="live-indicator"><span></span><b>AO VIVO</b><small id="last-update">--:--:--</small></div>
+    </header>
+
+    <main id="top">
+      <section class="intro" id="macro">
+        <div>
+          <p class="eyebrow">Terminal Brasil <span>•</span> Monitor diário</p>
+          <h1>O pulso da<br /><em>economia.</em></h1>
+          <p class="intro-copy">Indicadores essenciais para entender o Brasil em movimento, reunidos em um único lugar.</p>
+        </div>
+        <div class="session-panel">
+          <div class="session-row"><span>Próxima atualização</span><strong id="countdown">10s</strong></div>
+          <div class="session-actions">
+            <button id="refresh-now" class="refresh-button" type="button">Atualizar agora</button>
+          </div>
+          <div class="progress"><span id="progress-bar"></span></div>
+          <div class="session-row muted"><span>Fontes públicas conectadas</span><span id="source-status">verificando</span></div>
+        </div>
+      </section>
+
+      <section class="section-block" id="atividade">
+        <div class="section-heading"><div><p class="eyebrow">01 / Macro</p><h2>Crescimento & juros</h2></div><span class="section-note">Brasil · dados mais recentes</span></div>
+        <div class="metric-grid growth-grid">
+          <article class="metric-card" data-metric="gdpAnnual"><div class="card-top"><span class="label">PIB anual</span><span class="tag">BCB / Focus</span></div><div class="value" id="gdpAnnual">--</div><div class="card-bottom"><span>Projeção anual · Banco Central</span><span class="trend positive">●</span></div></article>
+          <article class="metric-card" data-metric="gdpQuarter"><div class="card-top"><span class="label">PIB trimestral</span><span class="tag">IBGE / Ipea</span></div><div class="value" id="gdpQuarter">--</div><div class="card-bottom"><span>Mesmo trimestre do ano anterior</span><span class="trend positive">●</span></div></article>
+          <article class="metric-card" data-metric="gdpReal"><div class="card-top"><span class="label">PIB em reais</span><span class="tag">IBGE</span></div><div class="value compact" id="gdpReal">--</div><div class="card-bottom"><span>Valor nominal trimestral</span><span class="trend positive">●</span></div></article>
+          <article class="metric-card" data-metric="gdpCapita"><div class="card-top"><span class="label">PIB per capita</span><span class="tag">IBGE</span></div><div class="value compact" id="gdpCapita">--</div><div class="card-bottom"><span>Renda anual nominal</span><span class="trend neutral">●</span></div></article>
+          <article class="metric-card" data-metric="selic"><div class="card-top"><span class="label">Selic atual</span><span class="tag">BCB</span></div><div class="value" id="selic">--</div><div class="card-bottom"><span>Hoje · Copom vigente</span><span class="trend neutral">●</span></div></article>
+          <article class="metric-card" data-metric="ipca"><div class="card-top"><span class="label">IPCA</span><span class="tag">BCB</span></div><div class="value" id="ipca">--</div><div class="card-bottom"><span>12 meses</span><span class="trend negative">●</span></div></article>
+          <article class="metric-card" data-metric="cdi"><div class="card-top"><span class="label">CDI</span><span class="tag">BCB</span></div><div class="value" id="cdi">--</div><div class="card-bottom"><span>A.a. · taxa efetiva</span><span class="trend neutral">●</span></div></article>
+          <article class="metric-card" data-metric="cdiDaily"><div class="card-top"><span class="label">CDI diário</span><span class="tag">BCB</span></div><div class="value" id="cdiDaily">--</div><div class="card-bottom"><span>Taxa do último dia útil</span><span class="trend neutral">●</span></div></article>
+          <article class="metric-card" data-metric="igpm"><div class="card-top"><span class="label">IGP-M</span><span class="tag">FGV</span></div><div class="value" id="igpm">--</div><div class="card-bottom"><span>12 meses</span><span class="trend positive">●</span></div></article>
+        </div>
+      </section>
+
+      <section class="section-block" id="futuro">
+        <div class="section-heading"><div><p class="eyebrow">06 / Mercado futuro</p><h2>Expectativas Focus</h2></div><span class="section-note">Projeções anuais do BCB</span></div>
+        <div class="forecast-grid">
+          <article class="market-card forecast-card"><div class="card-top"><span class="label">Selic</span><span class="tag">% a.a.</span></div><div class="forecast-list" id="forecastSelic"><span>carregando</span></div></article>
+          <article class="market-card forecast-card"><div class="card-top"><span class="label">IPCA</span><span class="tag">% a.a.</span></div><div class="forecast-list" id="forecastIpca"><span>carregando</span></div></article>
+          <article class="market-card forecast-card"><div class="card-top"><span class="label">PIB total</span><span class="tag">variação anual</span></div><div class="forecast-list" id="forecastPib"><span>carregando</span></div></article>
+          <article class="market-card forecast-card"><div class="card-top"><span class="label">Dólar</span><span class="tag">R$ / US$</span></div><div class="forecast-list" id="forecastDollar"><span>carregando</span></div></article>
+        </div>
+      </section>
+
+      <section class="section-block" id="mercados">
+        <div class="section-heading"><div><p class="eyebrow">02 / Mercado</p><h2>Preços que movem o dia</h2></div><span class="section-note">Cotações · atualização contínua</span></div>
+        <div class="market-layout">
+          <article class="market-card currency-card"><div class="card-top"><span class="label">Câmbio</span><span class="tag live-tag">● mercado</span></div><div class="currency-row"><span><i class="flag usd">$</i><b>Dólar comercial</b></span><strong id="usd">--</strong><small id="usdChange">--</small></div><div class="currency-row"><span><i class="flag usd">$</i><b>Dólar turismo</b></span><strong id="usdTourism">--</strong><small id="usdTourismChange">--</small></div><div class="currency-row"><span><i class="flag eur">€</i><b>Euro</b></span><strong id="eur">--</strong><small id="eurChange">--</small></div><div class="currency-row"><span><i class="flag cny">¥</i><b>Yuan chinês</b></span><strong id="cny">--</strong><small id="cnyChange">--</small></div><div class="currency-row"><span><i class="flag jpy">¥</i><b>Iene japonês</b></span><strong id="jpy">--</strong><small id="jpyChange">--</small></div></article>
+          <article class="market-card index-card"><div class="card-top"><span class="label">Bolsas</span><span class="tag">fechamento / futuro</span></div><div class="index-row"><span><b>Ibovespa</b><small>Brasil</small></span><strong id="ibov">--</strong><em id="ibovChange">--</em></div><div class="index-row"><span><b>S&P 500</b><small>Estados Unidos</small></span><strong id="sp500">--</strong><em id="sp500Change">--</em></div><div class="index-row"><span><b>Nikkei 225</b><small>Japão</small></span><strong id="nikkei">--</strong><em id="nikkeiChange">--</em></div><div class="index-row"><span><b>Shanghai</b><small>China</small></span><strong id="shanghai">--</strong><em id="shanghaiChange">--</em></div><div class="index-row"><span><b>Euro Stoxx 50</b><small>Europa</small></span><strong id="eurostoxx">--</strong><em id="eurostoxxChange">--</em></div></article>
+        </div>
+      </section>
+
+      <section class="section-block" id="ibc-br">
+        <div class="section-heading"><div><p class="eyebrow">03 / Atividade econômica</p><h2>Índice de atividade econômica - IBC-Br</h2></div><span class="section-note"><a href="https://www.bcb.gov.br/estatisticas/indicadoresselecionados" target="_blank" rel="noopener">Banco Central · indicadores selecionados</a></span></div>
+        <div class="metric-grid ibc-grid">
+          <article class="metric-card" data-metric="ibcCurrent"><div class="card-top"><span class="label">IBC-Br</span><span class="tag">BCB</span></div><div class="value compact" id="ibcCurrent">--</div><div class="card-bottom"><span>Último mês divulgado</span><span class="trend positive">●</span></div></article>
+          <article class="metric-card" data-metric="ibcMonthly"><div class="card-top"><span class="label">Variação mensal</span><span class="tag">contra mês anterior</span></div><div class="value" id="ibcMonthly">--</div><div class="card-bottom"><span>Com ajuste sazonal</span><span class="trend neutral">●</span></div></article>
+          <article class="metric-card" data-metric="ibcYearly"><div class="card-top"><span class="label">Variação em 12 meses</span><span class="tag">BCB</span></div><div class="value" id="ibcYearly">--</div><div class="card-bottom"><span>Acumulado</span><span class="trend positive">●</span></div></article>
+          <article class="metric-card" data-metric="ibcrNorte"><div class="card-top"><span class="label">IBCR Norte</span><span class="tag">BCB</span></div><div class="value compact" id="ibcrNorte">N/D</div><div class="card-bottom"><span>Variação mensal</span><span class="trend neutral">●</span></div></article>
+          <article class="metric-card" data-metric="ibcrNordeste"><div class="card-top"><span class="label">IBCR Nordeste</span><span class="tag">BCB</span></div><div class="value compact" id="ibcrNordeste">N/D</div><div class="card-bottom"><span>Variação mensal</span><span class="trend neutral">●</span></div></article>
+          <article class="metric-card" data-metric="ibcrCentroOeste"><div class="card-top"><span class="label">IBCR Centro-Oeste</span><span class="tag">BCB</span></div><div class="value compact" id="ibcrCentroOeste">N/D</div><div class="card-bottom"><span>Variação mensal</span><span class="trend neutral">●</span></div></article>
+          <article class="metric-card" data-metric="ibcrSudeste"><div class="card-top"><span class="label">IBCR Sudeste</span><span class="tag">BCB</span></div><div class="value compact" id="ibcrSudeste">N/D</div><div class="card-bottom"><span>Variação mensal</span><span class="trend neutral">●</span></div></article>
+          <article class="metric-card" data-metric="ibcrSul"><div class="card-top"><span class="label">IBCR Sul</span><span class="tag">BCB</span></div><div class="value compact" id="ibcrSul">N/D</div><div class="card-bottom"><span>Variação mensal</span><span class="trend neutral">●</span></div></article>
+        </div>
+        <div class="section-heading sector-heading"><div><p class="eyebrow">Índices setoriais</p><h2>Composição da atividade</h2></div><span class="section-note">IBGE · últimas divulgações</span></div>
+        <div class="sector-grid">
+          <article class="metric-card" data-metric="agro"><div class="card-top"><span class="label">Agropecuária</span><span class="tag">BCB / IBC-Br</span></div><div class="value" id="agro">--</div><div class="card-bottom"><span>Variação mensal</span><span class="trend positive">●</span></div></article>
+          <article class="metric-card" data-metric="industry"><div class="card-top"><span class="label">Indústria</span><span class="tag">BCB / IBC-Br</span></div><div class="value" id="industry">--</div><div class="card-bottom"><span>Variação mensal</span><span class="trend negative">●</span></div></article>
+          <article class="metric-card" data-metric="services"><div class="card-top"><span class="label">Serviços</span><span class="tag">BCB / IBC-Br</span></div><div class="value" id="services">--</div><div class="card-bottom"><span>Variação mensal</span><span class="trend negative">●</span></div></article>
+          <article class="metric-card" data-metric="taxes"><div class="card-top"><span class="label">Impostos</span><span class="tag">BCB / IBC-Br</span></div><div class="value" id="taxes">--</div><div class="card-bottom"><span>Variação mensal</span><span class="trend negative">●</span></div></article>
+        </div>
+      </section>
+
+      <section class="section-block" id="comercio">
+        <div class="section-heading"><div><p class="eyebrow">04 / Commodities</p><h2>O Brasil no mundo</h2></div><span class="section-note">Referências internacionais · USD</span></div>
+        <article class="market-card commodities-card"><div class="card-top"><span class="label">Commodities</span><span class="tag">referência</span></div><div class="commodity-grid"><div><img class="commodity-icon iron" src="https://loremflickr.com/160/100/iron,ore" alt="Minério de ferro" loading="lazy"><b>Minério de ferro</b><strong id="iron">--</strong><small id="ironChange">--</small></div><div><img class="commodity-icon soy" src="https://loremflickr.com/160/100/soybean,field" alt="Soja" loading="lazy"><b>Soja</b><strong id="soy">--</strong><small id="soyChange">--</small></div><div><img class="commodity-icon corn" src="https://loremflickr.com/160/100/corn,field" alt="Milho" loading="lazy"><b>Milho</b><strong id="corn">--</strong><small id="cornChange">--</small></div><div><img class="commodity-icon coffee" src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=160&h=100&q=80" alt="Café" loading="lazy"><b>Café</b><strong id="coffee">--</strong><small id="coffeeChange">--</small></div><div><img class="commodity-icon gold" src="https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&w=160&h=100&q=80" alt="Ouro" loading="lazy"><b>Ouro</b><strong id="gold">--</strong><small id="goldChange">--</small></div><div><img class="commodity-icon oil" src="https://loremflickr.com/160/100/oil,barrel" alt="Petróleo" loading="lazy"><b>Petróleo</b><strong id="oil">--</strong><small id="oilChange">--</small></div><div><img class="commodity-icon sugar" src="https://loremflickr.com/160/100/sugar,cane" alt="Açúcar" loading="lazy"><b>Açúcar</b><strong id="sugar">--</strong><small id="sugarChange">--</small></div><div><img class="commodity-icon pulp" src="https://loremflickr.com/160/100/paper,pulp" alt="Celulose" loading="lazy"><b>Celulose</b><strong id="pulp">--</strong><small id="pulpChange">--</small></div><div><img class="commodity-icon beef" src="https://images.unsplash.com/photo-1588168333986-5078d3ae3976?auto=format&fit=crop&w=160&h=100&q=80" alt="Carne bovina" loading="lazy"><b>Carne bovina</b><strong id="beef">--</strong><small id="beefChange">--</small></div></div></article>
+      </section>
+
+      <section class="section-block" id="balanca">
+        <div class="section-heading"><div><p class="eyebrow">05 / Balança comercial</p><h2>Fluxo de comércio exterior</h2></div><span class="section-note">Brasil · US$ bilhões</span></div>
+        <div class="trade-overview">
+          <article class="trade-card trade-summary"><div class="card-top"><span class="label">Acumulado do ano</span><span class="tag">MDIC / Comex</span></div><strong id="tradeYear">--</strong><span class="trade-caption">Saldo comercial acumulado em 2026</span><div class="trade-stats"><div><span>Exportações</span><b id="tradeExportsYear">--</b></div><div><span>Importações</span><b id="tradeImportsYear">--</b></div></div></article>
+          <article class="market-card trade-detail"><div class="card-top"><span class="label">Último mês divulgado</span><span class="tag">saldo mensal</span></div><div class="trade-month"><div><span>Exportações</span><strong id="tradeExportsMonth">--</strong></div><div><span>Importações</span><strong id="tradeImportsMonth">--</strong></div><div><span>Saldo</span><strong id="tradeBalanceMonth">--</strong></div></div><div class="trade-footer"><span>Saldo por trimestre</span><div class="quarter-values"><b id="tradeQ1">--</b><b id="tradeQ2">--</b><b id="tradeQ3">--</b><b id="tradeQ4">--</b></div></div></article>
+        </div>
+        <div class="trade-graphs">
+          <article class="market-card graph-card"><div class="card-top"><span class="label">Exportações x importações</span><span class="tag">US$ bi · mês</span></div><div class="chart-legend"><span class="legend-export">Exportações</span><span class="legend-import">Importações</span></div><div class="monthly-chart" id="monthlyChart"></div></article>
+          <article class="market-card graph-card"><div class="card-top"><span class="label">Saldo comercial por trimestre</span><span class="tag">US$ bi · 2026</span></div><div class="quarter-chart" id="quarterChart"></div></article>
+        </div>
+      </section>
+    </main>
+
+    <footer><span>ATLAS ECONÔMICO / Terminal público</span><span>Dados sujeitos a atraso de divulgação. Valores indicativos.</span><span id="footer-date">--</span></footer>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
