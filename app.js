@@ -59,36 +59,17 @@ function renderComparisons() {
   ['iron', 'soy', 'corn', 'coffee', 'gold', 'oil', 'sugar', 'pulp', 'beef'].forEach((id, index) => addComparison(document.querySelectorAll('.commodity-grid>div')[index], comparisons[id]));
 }
 function enableCommodityInteractions() {
-  const localImages = {
-    iron: 'Mineriodeferro.jpg',
-    soy: 'soja.jpg',
-    corn: 'Milho.jpg',
-    coffee: 'cafe.jpg',
-    gold: 'Ouro.jpg',
-    sugar: 'açucar.jpg',
-    pulp: 'celulose.jpg',
-    beef: 'carne.jpg'
-  };
-  Object.entries(localImages).forEach(([commodity, source]) => {
-    const image = document.querySelector(`.commodity-icon.${commodity}`);
-    if (image) image.src = source;
-  });
-  const oilImage = document.querySelector('.commodity-icon.oil');
-  if (oilImage) {
-    oilImage.src = 'https://img.freepik.com/vetores-premium/icone-de-desenho-animado-de-gota-de-oleo-preto-isolado-em-fundo-branco_98402-69257.jpg?semt=ais_hybrid&w=740&q=80';
-    oilImage.alt = 'Gota de petróleo';
-  }
+  document.querySelectorAll('.commodity-icon').forEach(image => image.remove());
   document.querySelectorAll('.commodity-grid>div').forEach(card => {
-    const image = card.querySelector('.commodity-icon');
-    image.setAttribute('role', 'button');
-    image.setAttribute('tabindex', '0');
-    image.setAttribute('aria-pressed', 'false');
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('aria-pressed', 'false');
     const toggle = () => {
       const selected = card.classList.toggle('is-selected');
-      image.setAttribute('aria-pressed', String(selected));
+      card.setAttribute('aria-pressed', String(selected));
     };
-    image.addEventListener('click', toggle);
-    image.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); } });
+    card.addEventListener('click', toggle);
+    card.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); toggle(); } });
   });
 }
 function markNegativeNumbers() {
@@ -107,6 +88,24 @@ function formatTradeAmount(value) {
 }
 function formatQuarterTrade(value) {
   return `${value >= 0 ? '+' : '-'}${Math.abs(value / 1000).toFixed(1).replace('.', ',')}`;
+}
+let stateGdpRows = [];
+let stateGdpPage = 0;
+const STATE_GDP_PAGE_SIZE = 6;
+function renderStateGdp() {
+  const list = byId('stateGdpList');
+  if (!list || !stateGdpRows.length) return;
+  const pageCount = Math.ceil(stateGdpRows.length / STATE_GDP_PAGE_SIZE);
+  const page = stateGdpRows.slice(stateGdpPage * STATE_GDP_PAGE_SIZE, stateGdpPage * STATE_GDP_PAGE_SIZE + STATE_GDP_PAGE_SIZE);
+  list.innerHTML = page.map(row => `<div class="state-gdp-row"><span>${row.name}</span><strong>R$ ${(row.value / 1_000_000).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} bi</strong></div>`).join('');
+  setText('stateGdpNote', `IBGE / SIDRA · ${page[0].year} · página ${stateGdpPage + 1}/${pageCount}`);
+  stateGdpPage = (stateGdpPage + 1) % pageCount;
+}
+async function updateStateGdp() {
+  const rows = await fetchJson('https://apisidra.ibge.gov.br/values/t/5938/n3/all/v/37/p/last');
+  stateGdpRows = rows.filter(row => row.D1C && row.V && row.V !== '-' && row.D1N).map(row => ({ name: row.D1N, value: Number(row.V), year: row.D3N })).filter(row => Number.isFinite(row.value)).sort((a, b) => b.value - a.value);
+  if (!stateGdpRows.length) throw new Error('PIB estadual indisponível');
+  renderStateGdp();
 }
 async function updateTradeBalance() {
   const now = new Date();
@@ -308,6 +307,117 @@ async function updateMarketIndices() {
   }));
   return updated.some(Boolean);
 }
+const majorStocks = [
+  ['PETR4', 'Petrobras', 'PETR4.SA'], ['VALE3', 'Vale', 'VALE3.SA'], ['ITUB4', 'Itaú Unibanco', 'ITUB4.SA'],
+  ['BBDC4', 'Bradesco', 'BBDC4.SA'], ['BBAS3', 'Banco do Brasil', 'BBAS3.SA'], ['ABEV3', 'Ambev', 'ABEV3.SA'],
+  ['WEGE3', 'WEG', 'WEGE3.SA'], ['CMIG4', 'Cemig', 'CMIG4.SA'], ['RENT3', 'Localiza', 'RENT3.SA'], ['SUZB3', 'Suzano', 'SUZB3.SA'],
+  ['MGLU3', 'Magazine Luiza', 'MGLU3.SA'], ['LREN3', 'Lojas Renner', 'LREN3.SA'], ['RADL3', 'Raia Drogasil', 'RADL3.SA'],
+  ['PRIO3', 'PRIO', 'PRIO3.SA'], ['CSAN3', 'Cosan', 'CSAN3.SA'], ['KLBN11', 'Klabin', 'KLBN11.SA'],
+  ['GGBR4', 'Gerdau', 'GGBR4.SA'], ['TOTS3', 'Totvs', 'TOTS3.SA'], ['VIVT3', 'Telefônica Brasil', 'VIVT3.SA'], ['EQTL3', 'Equatorial', 'EQTL3.SA']
+];
+let stockUniverse = [
+  ...majorStocks,
+  ['B3SA3', 'B3', 'B3SA3.SA'], ['BRAP4', 'Bradespar', 'BRAP4.SA'], ['CCRO3', 'CCR', 'CCRO3.SA'], ['CPFE3', 'CPFL Energia', 'CPFE3.SA'],
+  ['CSNA3', 'CSN', 'CSNA3.SA'], ['CYRE3', 'Cyrela', 'CYRE3.SA'], ['DXCO3', 'Dexco', 'DXCO3.SA'], ['EMBR3', 'Embraer', 'EMBR3.SA'],
+  ['ENGI11', 'Energisa', 'ENGI11.SA'], ['FLRY3', 'Fleury', 'FLRY3.SA'], ['IRBR3', 'IRB Brasil', 'IRBR3.SA'], ['ITSA4', 'Itaúsa', 'ITSA4.SA'],
+  ['JHSF3', 'JHSF', 'JHSF3.SA'], ['LOGG3', 'Log Commercial', 'LOGG3.SA'], ['LWSA3', 'Locaweb', 'LWSA3.SA'],
+  ['MULT3', 'Multiplan', 'MULT3.SA'], ['NTCO3', 'Natura', 'NTCO3.SA'], ['PCAR3', 'Pão de Açúcar', 'PCAR3.SA'], ['PETZ3', 'Petz', 'PETZ3.SA'],
+  ['POMO4', 'Marcopolo', 'POMO4.SA'], ['POSI3', 'Positivo', 'POSI3.SA'], ['RAIL3', 'Rumo', 'RAIL3.SA'], ['SBSP3', 'Sabesp', 'SBSP3.SA'],
+  ['SLCE3', 'SLC Agrícola', 'SLCE3.SA'], ['SMTO3', 'São Martinho', 'SMTO3.SA'], ['TIMS3', 'TIM', 'TIMS3.SA'], ['TRPL4', 'ISA Energia', 'TRPL4.SA'],
+  ['USIM5', 'Usiminas', 'USIM5.SA'], ['VAMO3', 'Vamos', 'VAMO3.SA'], ['YDUQ3', 'Yduqs', 'YDUQ3.SA'], ['ALPA4', 'Alpargatas', 'ALPA4.SA'],
+  ['AZUL4', 'Azul', 'AZUL4.SA'], ['CVCB3', 'CVC Brasil', 'CVCB3.SA'], ['HYPE3', 'Hypera', 'HYPE3.SA'], ['MRFG3', 'Marfrig', 'MRFG3.SA'],
+  ['ODPV3', 'Odontoprev', 'ODPV3.SA'], ['MOVI3', 'Movida', 'MOVI3.SA'], ['ZAMP3', 'Zamp', 'ZAMP3.SA'], ['PSSA3', 'Porto Seguro', 'PSSA3.SA'], ['BLAU3', 'Blau Farmacêutica', 'BLAU3.SA']
+];
+const STOCK_PAGE_SIZE = 20;
+let stockPage = 1;
+let stockApiUniverseLoaded = false;
+function getStockPage() {
+  const pageCount = Math.ceil(stockUniverse.length / STOCK_PAGE_SIZE);
+  const start = stockPage * STOCK_PAGE_SIZE;
+  stockPage = (stockPage + 1) % pageCount;
+  return { stocks: stockUniverse.slice(start, start + STOCK_PAGE_SIZE), page: stockPage === 0 ? pageCount : stockPage, pageCount };
+}
+function renderStockList(stocks, targetId = 'stockList') {
+  const container = byId(targetId);
+  if (!container) return;
+  container.innerHTML = stocks.map(stock => `<div class="stock-row"><b>${stock.ticker}</b><span>${stock.name}</span><strong>${stock.price == null ? 'N/D' : `R$ ${stock.price.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}</strong><em class="stock-change ${stock.change >= 0 ? 'positive-number' : 'negative-number'}">${stock.change == null ? 'N/D' : `${stock.change >= 0 ? '+' : ''}${stock.change.toFixed(2).replace('.', ',')}%`}</em></div>`).join('');
+}
+async function updateGrowingStocks() {
+  try {
+    const result = await fetchJson('https://brapi.dev/api/quote/list?sortBy=name&sortOrder=asc');
+    const listedStocks = (result.stocks || [])
+      .filter(stock => stock.type === 'stock' && stock.stock)
+      .sort((a, b) => a.stock.localeCompare(b.stock))
+      .map(stock => [stock.stock, stock.name || stock.stock, `${stock.stock}.SA`, Number.isFinite(Number(stock.close)) ? Number(stock.close) : null, Number.isFinite(Number(stock.change)) ? Number(stock.change) : null]);
+    const uniqueStocks = [...new Map(listedStocks.map(stock => [stock[0], stock])).values()];
+    if (uniqueStocks.length) {
+      stockUniverse = uniqueStocks;
+      stockApiUniverseLoaded = true;
+    }
+  } catch (error) { /* usa a lista de contingência quando a listagem pública estiver indisponível */ }
+  const selected = getStockPage();
+  if (stockApiUniverseLoaded) {
+    const stocks = selected.stocks.map(([ticker, name, symbol, price, change]) => ({ ticker, name, price, change }));
+    renderStockList(stocks.sort((a, b) => (b.change ?? -Infinity) - (a.change ?? -Infinity)));
+    setText('stocksNote', `${stockUniverse.length} ações B3 · página ${selected.page}/${selected.pageCount} · próxima em 10s`);
+    return stocks.some(stock => stock.price != null);
+  }
+  const stocks = await Promise.all(selected.stocks.map(async ([ticker, name, symbol]) => {
+    try {
+      const result = await fetchJson(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=5d`);
+      const chart = result.chart?.result?.[0];
+      const meta = chart?.meta || {};
+      const prices = chart?.indicators?.quote?.[0]?.close?.filter(Number.isFinite) || [];
+      const price = Number.isFinite(meta.regularMarketPrice) ? meta.regularMarketPrice : prices.at(-1);
+      const previousClose = meta.previousClose ?? meta.chartPreviousClose ?? prices.at(-2);
+      if (!Number.isFinite(price) || !Number.isFinite(previousClose)) throw new Error('cotação indisponível');
+      return { ticker, name, price, change: (price / previousClose - 1) * 100 };
+    } catch (error) { return { ticker, name, price: null, change: null }; }
+  }));
+  renderStockList(stocks.sort((a, b) => (b.change ?? -Infinity) - (a.change ?? -Infinity)));
+  setText('stocksNote', `${stockUniverse.length} ações monitoradas · página ${selected.page}/${selected.pageCount} · próxima em 10s`);
+  return stocks.some(stock => stock.price != null);
+}
+let sp500Universe = [];
+let sp500Page = 0;
+async function loadSp500Universe() {
+  const response = await fetch('https://en.wikipedia.org/wiki/List_of_S%26P_500_companies', { cache: 'no-store', signal: AbortSignal.timeout(8000) });
+  if (!response.ok) throw new Error('Composição do S&P 500 indisponível');
+  const html = await response.text();
+  const page = new DOMParser().parseFromString(html, 'text/html');
+  const table = [...page.querySelectorAll('table.wikitable')].find(item => item.textContent.includes('Symbol') && item.textContent.includes('Security'));
+  const rows = [...(table?.querySelectorAll('tbody tr') || [])];
+  sp500Universe = rows.map(row => {
+    const cells = row.querySelectorAll('td');
+    const ticker = cells[0]?.textContent.trim().replace(/\s+/g, '').replace(/\./g, '-');
+    const name = cells[1]?.textContent.replace(/\[[^\]]+\]/g, '').trim();
+    return ticker && name ? [ticker, name] : null;
+  }).filter(Boolean);
+  if (!sp500Universe.length) throw new Error('Lista do S&P 500 vazia');
+}
+async function fetchYahooStock(ticker, name) {
+  try {
+    const result = await fetchJson(`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=5d`);
+    const chart = result.chart?.result?.[0];
+    const meta = chart?.meta || {};
+    const prices = chart?.indicators?.quote?.[0]?.close?.filter(Number.isFinite) || [];
+    const price = Number.isFinite(meta.regularMarketPrice) ? meta.regularMarketPrice : prices.at(-1);
+    const previousClose = meta.previousClose ?? meta.chartPreviousClose ?? prices.at(-2);
+    if (!Number.isFinite(price) || !Number.isFinite(previousClose)) throw new Error('cotação indisponível');
+    return { ticker, name, price, change: (price / previousClose - 1) * 100 };
+  } catch (error) { return { ticker, name, price: null, change: null }; }
+}
+async function updateSp500Stocks() {
+  if (!sp500Universe.length) await loadSp500Universe();
+  const pageCount = Math.ceil(sp500Universe.length / STOCK_PAGE_SIZE);
+  const start = sp500Page * STOCK_PAGE_SIZE;
+  const selected = sp500Universe.slice(start, start + STOCK_PAGE_SIZE);
+  sp500Page = (sp500Page + 1) % pageCount;
+  const stocks = await Promise.all(selected.map(([ticker, name]) => fetchYahooStock(ticker, name)));
+  renderStockList(stocks.sort((a, b) => (b.change ?? -Infinity) - (a.change ?? -Infinity)), 'sp500List');
+  setText('sp500Note', `${sp500Universe.length} ações · página ${sp500Page === 0 ? pageCount : sp500Page}/${pageCount} · próxima em 10s`);
+  return stocks.some(stock => stock.price != null);
+}
 async function updateIbcBr() {
   const data = await fetchJson('https://api.bcb.gov.br/dados/serie/bcdata.sgs.24363/dados/ultimos/13?formato=json');
   const values = data.map(item => Number(item.valor));
@@ -348,12 +458,9 @@ async function updateActivityComposition() {
   });
 }
 async function updateIbcrRegional() {
-  const sources = ['./Cópia de ies-02.xlsx', 'https://www.bcb.gov.br/content/indeco/indicadoresselecionados/ies-02.xlsx'];
-  let response;
-  for (const source of sources) {
-    try { response = await fetch(`${source}${source.includes('?') ? '&' : '?'}atualizacao=${Date.now()}`, { cache: 'no-store', signal: AbortSignal.timeout(5000) }); if (response.ok) break; } catch (error) { /* tenta a fonte seguinte */ }
-  }
-  if (!response?.ok) throw new Error('Fonte IBCR indisponível');
+  const source = `https://www.bcb.gov.br/content/indeco/indicadoresselecionados/ies-02.xlsx?atualizacao=${Date.now()}`;
+  const response = await fetch(source, { cache: 'no-store', signal: AbortSignal.timeout(5000) });
+  if (!response.ok) throw new Error('Fonte IBCR indisponível');
   const workbook = XLSX.read(await response.arrayBuffer(), { type: 'array' });
   const rows = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
   const dataRows = rows.slice(8).filter(row => typeof row[0] === 'number' && row.slice(1, 6).some(value => typeof value === 'number'));
@@ -392,11 +499,14 @@ async function refreshPublicData() {
   try { await updateGdpPerCapita(); connected = true; } catch (error) { /* PIB per capita sem fonte pública configurada */ }
   try { await updateIgpM(); connected = true; } catch (error) { setText('igpm', 'N/D'); /* IGP-M pode estar temporariamente indisponível */ }
   try { connected = (await updateMarketIndices()) || connected; } catch (error) { /* Yahoo Finance pode estar temporariamente indisponível */ }
+  try { connected = (await updateGrowingStocks()) || connected; } catch (error) { /* ações podem estar temporariamente indisponíveis */ }
+  try { connected = (await updateSp500Stocks()) || connected; } catch (error) { setText('sp500Note', 'Fonte do S&P 500 indisponível'); /* composição ou cotações podem estar temporariamente indisponíveis */ }
   try { await updateIbcBr(); connected = true; } catch (error) { /* IBC-Br may be temporarily unavailable */ }
   try { await updateActivityComposition(); connected = true; } catch (error) { /* composição pode estar temporariamente indisponível */ }
   try { await updateIbcrRegional(); connected = true; } catch (error) { /* planilha regional pode estar indisponível */ }
   try { await updateCommodityPrices(); connected = true; } catch (error) { /* commodities podem estar temporariamente indisponíveis */ }
   try { await updateFocusProjections(); connected = true; } catch (error) { /* Focus can be temporarily unavailable */ }
+  try { await updateStateGdp(); connected = true; } catch (error) { setText('stateGdpNote', 'IBGE / SIDRA indisponível'); /* PIB estadual pode estar temporariamente indisponível */ }
   markNegativeNumbers();
   try { await updateTradeBalance(); connected = true; } catch (error) { renderTradeFallback(); clearTradeValues(); markNegativeNumbers(); /* MDIC pode estar indisponível */ }
   setText('source-status', connected ? 'conectadas' : 'modo referência');
@@ -406,6 +516,9 @@ let updateInProgress = false;
 async function updatePublicData() {
   if (updateInProgress) return;
   updateInProgress = true;
+  remaining = REFRESH_SECONDS;
+  setText('countdown', `${remaining}s`);
+  byId('progress-bar').style.width = '0%';
   try {
     await refreshPublicData();
     setText('last-update', new Date().toLocaleTimeString('pt-BR'));
@@ -414,7 +527,12 @@ async function updatePublicData() {
   }
 }
 let remaining = REFRESH_SECONDS;
-function tick() { remaining = remaining <= 1 ? REFRESH_SECONDS : remaining - 1; setText('countdown', `${remaining}s`); byId('progress-bar').style.width = `${((REFRESH_SECONDS - remaining) / REFRESH_SECONDS) * 100}%`; }
+function tick() {
+  if (updateInProgress) return;
+  remaining = remaining <= 1 ? 0 : remaining - 1;
+  setText('countdown', `${remaining}s`);
+  byId('progress-bar').style.width = `${((REFRESH_SECONDS - remaining) / REFRESH_SECONDS) * 100}%`;
+}
 const refreshButton = byId('refresh-now');
 if (refreshButton) {
   refreshButton.addEventListener('click', async () => {
@@ -423,9 +541,6 @@ if (refreshButton) {
     button.textContent = 'Atualizando…';
     try {
       await updatePublicData();
-      remaining = REFRESH_SECONDS;
-      setText('countdown', `${remaining}s`);
-      byId('progress-bar').style.width = '0%';
     } finally {
       button.disabled = false;
       button.textContent = 'Atualizar agora';
@@ -433,7 +548,7 @@ if (refreshButton) {
   });
 }
 document.querySelector('#balanca').after(document.querySelector('#futuro'));
-byId('pulp')?.closest('.commodity-grid > div')?.remove();
+renderStockList(stockUniverse.slice(0, STOCK_PAGE_SIZE).map(([ticker, name]) => ({ ticker, name, price: null, change: null })));
 renderFallback(); renderTradeFallback(); setMarketChanges(); renderComparisons(); markNegativeNumbers(); enableCommodityInteractions(); updatePublicData(); setInterval(tick, 1000); setInterval(updatePublicData, REFRESH_SECONDS * 1000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') updatePublicData(); });
 window.addEventListener('online', updatePublicData);
