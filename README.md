@@ -29,7 +29,8 @@ Os dados podem permanecer como `N/D` quando uma fonte estiver fora do ar, bloque
 - Banco Central do Brasil Indicadores Selecionados: planilhas XLSX de composicao setorial e IBCR, em `bcb.gov.br/content/indeco/indicadoresselecionados`.
 - IBGE SIDRA: populacao, em `apisidra.ibge.gov.br`.
 - IBGE SIDRA tabela 5938, variável 37: PIB estadual a preços correntes das 27 unidades federativas, em `apisidra.ibge.gov.br`.
-- Ipeadata: PIB trimestral, PIB nominal e IGP-M, em `ipeadata.gov.br`.
+- IBGE SIDRA tabela 2072: PIB trimestral e PIB nominal, em `apisidra.ibge.gov.br`.
+- Banco Central SGS série 189: IGP-M mensal, em `api.bcb.gov.br`.
 - AwesomeAPI: cambio USD, EUR, CNY e JPY contra BRL, em `economia.awesomeapi.com.br`.
 - Yahoo Finance Chart API: indices e commodities de referencia, em `query1.finance.yahoo.com`.
 - Brapi: listagem publica de acoes brasileiras classificadas como `stock`, em `brapi.dev`.

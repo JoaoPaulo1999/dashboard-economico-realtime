@@ -238,39 +238,33 @@ async function fetchSidra(table, variable) {
   return (rows || []).filter(row => Number.isFinite(parseNumericValue(row.V)));
 }
 async function fetchIpeadataLatest(seriesId) {
-  const html = await fetch(`https://www.ipeadata.gov.br/ExibeSerie.aspx?serid=${seriesId}`, { cache: 'no-store', signal: AbortSignal.timeout(8000) }).then(response => response.text());
-  const rows = [...html.matchAll(/<tr id="grd_DXDataRow\d+"[^>]*>\s*<td class="dxgv" align="left">([^<]+)<\/td>\s*<td class="dxgv" align="right"[^>]*>([^<]+)<\/td>/g)];
-  const latest = rows.at(-1);
-  if (!latest) throw new Error('Ipeadata sem observação');
-  return { period: latest[1], value: parseNumericValue(latest[2]) };
+  throw new Error(`Fonte legada desativada: ${seriesId}`);
 }
 async function updateQuarterlyGdp() {
-  const latest = await fetchIpeadataLatest('38414');
-  if (!Number.isFinite(latest.value)) throw new Error('PIB real indisponível');
-  setText('gdpQuarter', formatPercent(latest.value));
+  const rows = await fetchJson('https://apisidra.ibge.gov.br/values/t/5932/n1/1/v/6561/p/last/c11255/90707');
+  const latest = rows.find(row => Number.isFinite(parseNumericValue(row.V)));
+  if (!latest) throw new Error('PIB trimestral indisponível');
+  setText('gdpQuarter', formatPercent(parseNumericValue(latest.V)));
 }
 async function updateGdpRealLevel() {
-  const latest = await fetchIpeadataLatest('38415');
-  if (!Number.isFinite(latest.value)) throw new Error('PIB nominal indisponível');
-  setText('gdpReal', formatRealValue(latest.value * 1_000_000));
+  const rows = await fetchJson('https://apisidra.ibge.gov.br/values/t/2072/n1/1/v/933/p/last');
+  const latest = rows.find(row => row.D2C === '933' && Number.isFinite(parseNumericValue(row.V)));
+  if (!latest) throw new Error('PIB nominal indisponível');
+  setText('gdpReal', formatRealValue(Number(latest.V) * 1_000_000));
 }
 async function updateGdpPerCapita() {
-  const [gdp, populationRows] = await Promise.all([
-    fetchIpeadataLatest('38415'),
-    fetchJson('https://apisidra.ibge.gov.br/values/t/6579/n1/1/v/9324/p/last%201')
-  ]);
+  const [gdpRows, populationRows] = await Promise.all([fetchJson('https://apisidra.ibge.gov.br/values/t/2072/n1/1/v/933/p/last'), fetchJson('https://apisidra.ibge.gov.br/values/t/6579/n1/1/v/9324/p/last%201')]);
+  const gdp = gdpRows.find(row => row.D2C === '933' && Number.isFinite(parseNumericValue(row.V)));
   const population = parseNumericValue(populationRows?.find(row => row.V && row.V !== 'Valor')?.V);
-  if (!Number.isFinite(gdp.value) || !Number.isFinite(population) || population === 0) throw new Error('PIB per capita indisponível');
-  setText('gdpCapita', formatRealValue((gdp.value * 1_000_000 * 4) / population));
+  if (!gdp || !Number.isFinite(population) || population === 0) throw new Error('PIB per capita indisponível');
+  setText('gdpCapita', formatRealValue((Number(gdp.V) * 1_000_000 * 4) / population));
 }
 async function updateIgpM() {
-  const html = await fetch('https://www.ipeadata.gov.br/ExibeSerie.aspx?serid=37796', { cache: 'no-store', signal: AbortSignal.timeout(8000) }).then(response => response.text());
-  const rows = [...html.matchAll(/<tr id="grd_DXDataRow\d+"[^>]*>\s*<td class="dxgv" align="left">([^<]+)<\/td>\s*<td class="dxgv" align="right"[^>]*>([^<]+)<\/td>/g)];
-  const values = rows.map(row => parseNumericValue(row[2])).filter(Number.isFinite);
-  const latest = values.at(-1);
-  const yearAgo = values.at(-13);
-  if (!Number.isFinite(latest) || !Number.isFinite(yearAgo) || yearAgo === 0) throw new Error('IGP-M indisponível');
-  setText('igpm', formatPercent((latest / yearAgo - 1) * 100));
+  const rows = await fetchJson('https://api.bcb.gov.br/dados/serie/bcdata.sgs.189/dados/ultimos/13?formato=json');
+  const values = rows.map(row => parseNumericValue(row.valor)).filter(Number.isFinite);
+  if (values.length < 12) throw new Error('IGP-M indisponível');
+  const accumulated = values.slice(-12).reduce((total, value) => total * (1 + value / 100), 1) - 1;
+  setText('igpm', formatPercent(accumulated * 100));
 }
 async function updateCommodityPrices() {
   const commodities = [
