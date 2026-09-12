@@ -48,6 +48,18 @@ As fontes podem alterar formato, limites, disponibilidade ou politica de acesso 
 
 Como o projeto e estatico, nao ha segredo para configurar. Nao adicione chaves privadas ao repositorio.
 
+## Proxy de mercado para o GitHub Pages
+
+Yahoo Finance bloqueia chamadas diretas feitas por paginas `github.io`. O repositorio inclui `api/market.js`, uma funcao proxy compatível com Vercel.
+
+1. Crie uma conta em `vercel.com` e importe este mesmo repositorio.
+2. Defina o nome do projeto como `dashboard-economico-realtime`.
+3. Publique o projeto sem variáveis secretas.
+4. Confirme que `https://dashboard-economico-realtime.vercel.app/api/market` abre uma resposta de erro JSON quando recebe uma URL ausente; isso confirma que a função esta ativa.
+5. Faça commit de `api/market.js`, `proxy-config.js`, `app.js` e `index.html` no GitHub.
+
+O arquivo `proxy-config.js` aponta o painel GitHub Pages para essa função. Sem a publicação na Vercel, os cards que dependem do Yahoo Finance continuarão sujeitos ao bloqueio CORS.
+
 ## Limites de dados publicos
 
 Todas as fontes sao acessadas diretamente pelo navegador e nao exigem chave. A disponibilidade, o CORS, os limites de requisicao e o horario de negociacao dependem de cada provedor. O painel atualiza a cada 10 segundos, mas ignora uma nova tentativa enquanto a carga anterior estiver em andamento; por isso uma fonte lenta nao cria requisicoes sobrepostas. Em caso de indisponibilidade, o card mostra `N/D` ou mantem o ultimo estado disponivel.

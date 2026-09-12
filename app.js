@@ -152,7 +152,12 @@ function renderTradeFallback() { renderTradeCharts([], [0, 0, 0, 0]); }
 function clearTradeValues() {
   ['tradeYear', 'tradeExportsYear', 'tradeImportsYear', 'tradeExportsMonth', 'tradeImportsMonth', 'tradeBalanceMonth', 'tradeQ1', 'tradeQ2', 'tradeQ3', 'tradeQ4'].forEach(id => setText(id, 'N/D'));
 }
-async function fetchJson(url) { const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(8000) }); if (!response.ok) throw new Error(response.status); return response.json(); }
+const MARKET_PROXY_URL = window.MARKET_PROXY_URL || '';
+function proxiedMarketUrl(url) {
+  if (!MARKET_PROXY_URL || !url.includes('query1.finance.yahoo.com') && !url.includes('query2.finance.yahoo.com')) return url;
+  return `${MARKET_PROXY_URL}?url=${encodeURIComponent(url)}`;
+}
+async function fetchJson(url) { const response = await fetch(proxiedMarketUrl(url), { cache: 'no-store', signal: AbortSignal.timeout(8000) }); if (!response.ok) throw new Error(response.status); return response.json(); }
 function parseNumericValue(value) {
   if (value == null || value === '') return Number.NaN;
   const raw = String(value).trim();
