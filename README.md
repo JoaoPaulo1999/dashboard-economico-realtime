@@ -1,5 +1,9 @@
 # Atlas Economico
 
+## Abrir o painel
+
+**[Acessar o Atlas Econômico online](https://joaopaulo1999.github.io/dashboard-economico-realtime/)**
+
 Painel estatico de indicadores economicos brasileiros e globais. Os dados sao carregados diretamente no navegador a partir de fontes publicas, sem chave de API.
 
 ## Executar
